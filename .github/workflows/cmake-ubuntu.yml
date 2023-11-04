@@ -1,0 +1,55 @@
+name: CMake on multiple Ubuntu releases
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      
+      matrix:
+        os: [ubuntu-22.04]
+        build_type: [Release]
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Set reusable strings
+      # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+    - name: Checkout libfemp submodule
+      run: |
+        git submodule init
+        git submodule update
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install -y libboost-program-options-dev
+        sudo apt-get install -y libsuitesparse-dev libboost-dev libeigen3-dev
+        sudo apt-get install -y flex bison re2c
+        sudo apt-get install -y libgtest-dev
+
+    - name: Configure CMake
+      run: >
+        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -S ${{ github.workspace }}
+
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+
+    - name: Test
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: ctest --build-config ${{ matrix.build_type }}

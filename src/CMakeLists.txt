@@ -5,9 +5,6 @@ project(fempcli
     VERSION 0.1.0
     )
 
-find_package( Boost REQUIRED COMPONENTS program_options)
-
-
 set(fempcli_HEADERS
     commands/FempCommand.hpp
     commands/ErrorReportingCommand.hpp

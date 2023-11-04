@@ -5,6 +5,8 @@ project(fempcli
     VERSION 0.1.0
 )
 
+find_package(Boost REQUIRED COMPONENTS program_options)
+
 add_subdirectory(external)
 add_subdirectory(src)
 
